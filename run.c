@@ -22,10 +22,12 @@ p_meta find_meta(p_meta *last, size_t size) {
     {
       //FIRST FIT CODE
 
-	if(*finish == 0) 
+	if(*last == 0) 
+	{
 		return 0;
-	
-	index = (*finish) ->prev;
+	}
+
+	index = (*last)->prev;
 
 	while(index)
 	{
@@ -47,16 +49,16 @@ p_meta find_meta(p_meta *last, size_t size) {
     {
       //BEST_FIT CODE
 
-        if(*finish == 0)
+        if(*last == 0)
                 return 0;
 
-        index = (*finish) ->prev;
+        index = (*last) ->prev;
 	p_meta save = index;
 	size_t sizearr[4096] = {0,};
 	size_t sizemin = 1000000;
 
 	int i , j, temp;
-	for(i = 0; index != (*start) ;i++)
+	for(i = 0; index != start ;i++)
 	{
 		sizearr[i] =  index->size - size;
 		index = index->prev;
@@ -90,18 +92,18 @@ p_meta find_meta(p_meta *last, size_t size) {
     {
       //WORST_FIT CODE
 
-	if(*finish == 0)
+	if(*last == 0)
   	{
 		return 0;
 	}
 
-        index = (*finish) ->prev;
+        index = (*last)->prev;
         p_meta save = index;
         size_t sizearr[4096] = {0,};
         size_t sizemax = 0;
 
         int i , j, temp;
-        for(i = 0; index != (*start) ;i++)
+        for(i = 0; index != start ;i++)
         {
                 sizearr[i] =  index->size - size;
                 index = index->prev;
@@ -154,15 +156,29 @@ void *m_malloc(size_t size) {
 		index->next = base;
 		index->prev = start;
 
-		return index->data[0];
+		return (index + META_SIZE);
 	}
 	else if(index = find_meta(&result, size))
 	{
+		if(index->size > size+META_SIZE)
+		{
+			temp = index + META_SIZE +size;
+			temp->prev = index;
+		
+	
+			temp->size= (index->size) + META_SIZE;
+			temp->free = 1;
+			
+			temp->next = index->next;
+			
+			index->next = temp;	
+
+		}
 		index->free = 0;
 		index->size = size;
 		index->data[0] = index + META_SIZE;
 
-		return index->data[0];	
+		return (index + META_SIZE);	
 	}
 	else
 	{
@@ -174,7 +190,7 @@ void *m_malloc(size_t size) {
 		result->next = index;
 		index->prev = result;
 		index->next = base;
-		
+		return (index + META_SIZE);
 	}
 
 }
